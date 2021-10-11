@@ -1,0 +1,17 @@
+{
+  "url": "https://example.com",
+  "selector": [
+    {
+      "type": "text",
+      "name": "Title",
+      "data": "#root > div > div.c3gNPq > a"
+    },
+    {
+      "type": "link",
+      "name": "Link",
+      "data": "#root > div > div.c3gNPq > a"
+    }
+  ],
+  "next": "#root > div > div > ul > li.ant-pagination-next > a",
+  "page": "30"
+}

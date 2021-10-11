@@ -1,0 +1,50 @@
+body {
+  min-height: 100vh;
+}
+
+.wrapper {
+  width: 80%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}
+
+.tv_box {
+  width: 100%;
+}
+
+select {
+  width: 15% !important;
+  height: 38px;
+}
+:is(select, input, button):focus {
+  box-shadow: none !important;
+  border-color: 0 !important;
+}
+
+.url_box {
+  width: 100%;
+}
+
+.seleceTv {
+  width: 75%;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 600px) {
+  .seleceTv {
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+/* select:focus {
+  
+}
+
+input:focus {
+  box-shadow: none !important;
+  border-color: 0;
+} */

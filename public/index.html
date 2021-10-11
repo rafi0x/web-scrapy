@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="tv_box">
+        <h1 class="text-center" style="font-size: 10rem">Scrapy</h1>
+        <hr style="width: 40%; margin: 0 auto" />
+        <form
+          class="mt-5"
+          method="POST"
+          action="http://localhost:5000/api/v1/get-data/"
+          id="form0"
+        >
+          <div class="url_box">
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="basic-addon1">URL</span>
+              <input
+                type="text"
+                name="url"
+                class="form-control"
+                id="basic-url"
+                aria-describedby="basic-addon3"
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
+        </form>
+        <div id="selectors" class="mt-5">
+          <form class="form1">
+            <div class="seleceTv d-flex">
+              <select
+                name="type"
+                class="form-select form-select-sm"
+                aria-label=".form-select-sm example"
+              >
+                <option selected disabled>What you need?</option>
+                <option value="txt">TEXT</option>
+                <option value="link">LINK</option>
+                <option disabled value="img">IMAGE</option>
+              </select>
+
+              <div class="input-group mb-3">
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  placeholder="name"
+                />
+                <input
+                  type="text"
+                  class="form-control"
+                  \
+                  name="data"
+                  placeholder="selector"
+                  style="width: 60%"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+        <div style="width: 10%; margin: 0 auto">
+          <h5 style="color: red; width: 100%" class="text-center"></h5>
+          <button
+            style="width: 100%; margin: 0 auto"
+            class="btn btn-success"
+            id="addMore"
+          >
+            +
+          </button>
+        </div>
+
+        <div class="button d-flex justify-content-center">
+          <button type="submit" class="btn btn-primary mt-3 w-50" form="form0">
+            start scrapy
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // selector form schema
+      let schema = `
+        <form class="form1">
+            <div class="seleceTv d-flex">
+              <select
+                name="type"
+                class="form-select form-select-sm"
+                aria-label=".form-select-sm example"
+              >
+                <option selected disabled>What you need?</option>
+                <option value="txt">TEXT</option>
+                <option value="link">LINK</option>
+                <option disabled value="img">IMAGE</option>
+              </select>
+
+              <div class="input-group mb-3">
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  placeholder="name"
+                />
+                <input
+                  type="text"
+                  class="form-control"
+                  \
+                  name="data"
+                  placeholder="selector"
+                  style="width: 60%"
+                />
+              </div>
+            </div>
+          </form>
+      `;
+
+      // first input form
+      let form = document.querySelector("form");
+
+      // selector inputs div
+      let selectors = document.querySelector("#selectors");
+
+      // add more input btn
+      let add = document.querySelector("#addMore");
+
+      let i = 0;
+      add.onclick = () => {
+        // click event on add btn
+        i++;
+        if (i >= 4) {
+          // show message on max count
+          add.previousElementSibling.innerHTML = "cant add more";
+          setTimeout(() => (add.previousElementSibling.innerHTML = ""), 2000); // clear error message after 3s
+          add.classList.add("d-none");
+        } else {
+          selectors.insertAdjacentHTML("beforeend", schema); // insert form schema in selectors div
+        }
+      };
+
+      // form event - for process and send data to server
+      form.onsubmit = async (event) => {
+        try {
+          event.preventDefault(); // stop from reload
+          let selecForm = document.querySelectorAll(".form1"); // select all selectors_input forms
+
+          let url = Object.fromEntries(new FormData(form).entries()); // get url from main form
+
+          let data = []; // here will be pushed all selector obj
+          console.log(selecForm);
+          selecForm.forEach((e) => {
+            let ar = Object.fromEntries(new FormData(e).entries()); // create object for selector form data
+            data.push(ar); // push to data[]
+          });
+
+          // the final object
+          // console.log(
+          //   JSON.stringify({
+          //     ...url,
+          //     selector: data,
+          //   })
+          // );
+
+          // send data to server
+          const response = await fetch(
+            "http://localhost:5000/api/v1/get-data/",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ...url,
+                selector: data,
+              }), // the final object
+            }
+          );
+
+          let result = await response.json();
+          console.log(result);
+        } catch (error) {}
+      };
+    </script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+      integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js"
+      integrity="sha384-PsUw7Xwds7x08Ew3exXhqzbhuEYmA2xnwc8BuD6SEr+UmEHlX8/MCltYEodzWA4u"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
