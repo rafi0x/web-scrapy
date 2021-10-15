@@ -12,21 +12,24 @@ scraper.init = async (url) => {
     scraper.browser = await puppeteer.launch({ headless: false });
     scraper.page = await scraper.browser.newPage();
     scraper.url = url;
+    await scraper.page.setDefaultNavigationTimeout(100000);
   } catch (error) {
     console.log(error);
   }
 };
 
 // scrape data from web
-scraper.getData = async (selector, typ) => {
+scraper.getData = async (selector) => {
   try {
     // store final data here
     let contentArr;
-    await scraper.page.goto(scraper.url, { waitUntil: "networkidle0" }); // open the url
-    // console.log(`${typ}`);
-
+    await scraper.page.evaluate(() => {
+      window.scrollTo(0, window.document.body.scrollHeight);
+    });
+    await scraper.page.waitForSelector(selector.data);
+    await scraper.page.waitForTimeout(2500);
     // if get any specific type
-    if (typ === "href") {
+    if (selector.type == "link") {
       contentArr = await scraper.page.$$eval(selector.data, (raw) => {
         return raw.map((data) => data.getAttribute("href")); // get data from type
       });
@@ -35,53 +38,53 @@ scraper.getData = async (selector, typ) => {
         return raw.map((data) => data.textContent); // get text
       });
     }
+
     return contentArr;
   } catch (error) {
     console.log(error);
   }
 };
 
-// execute getData for multipage
-scraper.exec = async (selector, nextBtn, pages, ty) => {
-  const result = await scraper.getData(selector, ty); // get data from first page
-  if (pages && nextBtn && result) {
-    let i = 0;
-    do {
-      i++;
-      let nBtn = await scraper.page.$(nextBtn); // select next button
-      if (nBtn) {
-        await nBtn.click();
-        const nxtData = await scraper.getData(selector, ty); /// get data from the next page
-        nxtData.map((data) => result.push(data));
-      } else break;
-    } while (i < parseInt(pages));
+// execute getData from a single selectoor from multipage
+scraper.exec = async (selector, nextBtn, pages) => {
+  try {
+    await scraper.page.goto(scraper.url, { waitUntil: "networkidle0" });
+    let result = []; // get data from first page
+    if (nextBtn && pages) {
+      let index = 0;
+      do {
+        index++;
+        // await scraper.page.waitForTimeout(2000);
+        result = result.concat(await scraper.getData(selector));
+
+        const nxtBt = await scraper.page.$(nextBtn);
+        if (!nxtBt) break;
+
+        if (index <= parseInt(pages) - 1) {
+          await scraper.page.click(nextBtn);
+        } else break;
+      } while (index <= parseInt(pages));
+    } else {
+      result = result.concat(await scraper.getData(selector));
+    }
+    // result.map((e) => console.log(e));
+    return result;
+  } catch (error) {
+    console.log(error);
   }
-  return result;
 };
 
-scraper.start = async (selector, nextBtn, pages) => {
+scraper.start = async (url, selector, nextBtn, pages) => {
   try {
     // the final data array
     let arr = [];
     for (let sel of selector) {
-      let result = null;
-      switch (sel.type) {
-        case "text": {
-          result = await scraper.exec(sel, nextBtn, pages, null);
-          break;
-        }
-        case "img": {
-          result = await scraper.exec(sel, nextBtn, pages, "src");
-          break;
-        }
-        case "link": {
-          result = await scraper.exec(sel, nextBtn, pages, "href");
-          break;
-        }
-      }
-      arr.push(result);
+      await scraper.init(url);
+      const results = await scraper.exec(sel, nextBtn, pages);
+      arr.push(results);
+      await scraper.browser.close();
     }
-    await scraper.browser.close();
+    console.log(arr);
     return arr;
   } catch (error) {
     console.log(error);

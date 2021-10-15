@@ -26,7 +26,9 @@
         >
           <div class="url_box">
             <div class="input-group mb-3">
-              <span class="input-group-text" id="basic-addon1">URL</span>
+              <span class="input-group-text" id="basic-addon1"
+                >Website link</span
+              >
               <input
                 type="text"
                 name="url"
@@ -34,6 +36,36 @@
                 id="basic-url"
                 aria-describedby="basic-addon3"
                 placeholder="https://example.com"
+              />
+            </div>
+          </div>
+          <div class="seleceTv d-flex flex-column">
+            <div>
+              <select
+                style="margin: 0 auto"
+                name="type"
+                class="form-select form-select-sm page-selector"
+                aria-label=".form-select-sm example"
+              >
+                <option value="single" selected>Single Page</option>
+                <option value="multi">Multiple</option>
+              </select>
+            </div>
+
+            <div class="input-group mb-3 mt-3 d-none page-input">
+              <input
+                type="text"
+                name="pages"
+                class="form-control"
+                placeholder="How many pages?"
+              />
+              <input
+                type="text"
+                class="form-control"
+                \
+                name="nextBtn"
+                placeholder="Next button selector"
+                style="width: 60%"
               />
             </div>
           </div>
@@ -135,6 +167,8 @@
       // add more input btn
       let add = document.querySelector("#addMore");
 
+      let pageSel = document.querySelector(".page-selector");
+
       let i = 0;
       add.onclick = () => {
         // click event on add btn
@@ -155,22 +189,26 @@
           event.preventDefault(); // stop from reload
           let selecForm = document.querySelectorAll(".form1"); // select all selectors_input forms
 
-          let url = Object.fromEntries(new FormData(form).entries()); // get url from main form
+          let form0 = Object.fromEntries(new FormData(form).entries()); // get url from main form
 
+          if (form0.type === "single") {
+            form0 = { url: form0.url };
+          }
+          console.log(form0);
           let data = []; // here will be pushed all selector obj
-          console.log(selecForm);
+
           selecForm.forEach((e) => {
             let ar = Object.fromEntries(new FormData(e).entries()); // create object for selector form data
             data.push(ar); // push to data[]
           });
 
           // the final object
-          // console.log(
-          //   JSON.stringify({
-          //     ...url,
-          //     selector: data,
-          //   })
-          // );
+          console.log(
+            JSON.stringify({
+              ...form0,
+              selector: data,
+            })
+          );
 
           // send data to server
           const response = await fetch(
@@ -181,7 +219,7 @@
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                ...url,
+                ...form0,
                 selector: data,
               }), // the final object
             }
@@ -191,6 +229,17 @@
           console.log(result);
         } catch (error) {}
       };
+
+      pageSel.addEventListener("click", (e) => {
+        let data = Object.fromEntries(new FormData(form).entries()); // get url from main form
+        let pageInput = document.querySelector(".page-input");
+        if (data.type === "multi") {
+          pageInput.classList.remove("d-none");
+        } else {
+          pageInput.classList.add("d-none");
+        }
+        console.log(data.type);
+      });
     </script>
 
     <script
