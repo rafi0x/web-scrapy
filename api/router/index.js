@@ -1,7 +1,7 @@
 const router = require("express").Router();
-const { getRequest } = require("../controller/index");
+const { getRequest, exportXls } = require("../controller/index");
 
 router.route("/api/v1/get-data/").post(getRequest);
-router.route("/api/v1/google-sheets/");
+router.route("/api/v1/export-data/").post(exportXls);
 
 module.exports = router;
