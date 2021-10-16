@@ -84,7 +84,6 @@ scraper.start = async (url, selector, nextBtn, pages) => {
       arr.push(results);
       await scraper.browser.close();
     }
-    console.log(arr);
     return arr;
   } catch (error) {
     console.log(error);
