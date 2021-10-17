@@ -183,4 +183,3 @@ exportForm.onsubmit = async (event) => {
     console.log(e);
   }
 };
-console.log(global);
