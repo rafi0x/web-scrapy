@@ -15,6 +15,6 @@ app.use(middlewares);
 // middlewares(app);
 app.use(router);
 
-app.listen(5000, () => {
-  console.log("server on 5000");
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`server on ${process.env.PORT || 5000}`);
 });
