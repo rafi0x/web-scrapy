@@ -11,7 +11,8 @@
       integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.min.js"></script>
   </head>
   <body>
     <div class="wrapper">
@@ -96,7 +97,7 @@
                   class="form-control"
                   \
                   name="data"
-                  placeholder="selector"
+                  placeholder="Selector  ex: div.product-details > p"
                   style="width: 60%"
                 />
               </div>
@@ -117,15 +118,24 @@
         <div class="button d-flex justify-content-center">
           <button
             type="submit"
-            class="btn btn-primary mt-3"
+            class="btn btn-primary mt-3 start-scrapy"
             style="width: 30%"
             form="form0"
           >
             start scrapy
           </button>
         </div>
-        <div class="d-flex justify-content-center mt-5">
-          <p style="margin: auto 0; padding: 0 1%">Export:</p>
+        <div
+          class="
+            d-flex
+            align-items-center
+            justify-content-center
+            mt-5
+            exporter-option
+            d-none
+          "
+        >
+          <p style="margin: auto 0">Export:</p>
           <form
             action="http://localhost:5000/api/v1/export-data/"
             method="post"
@@ -133,174 +143,27 @@
           >
             <div class="seleceTv d-flex">
               <select
-                name="exportAs"
-                class="form-select form-select-sm page-selector"
+                name="type"
+                class="select_export form-select form-select-sm export-selector"
                 aria-label=".form-select-sm example"
               >
-                <option selected disabled>what to do ?</option>
-                <option value="xlxs" selected>Excel</option>
-                <option value="gsheets" disabled>GoogleSheets</option>
+                <option selected disabled>where ?</option>
+                <option value="xlsx">Excel</option>
+                <option value="gsheet">GoogleSheet</option>
               </select>
             </div>
           </form>
           <button
             type="submit"
-            class="btn btn-primary mt-3"
-            style="width: 10%"
+            class="btn btn-primary d-none export-button"
             form="exporter"
-          >
-            Start
-          </button>
+          ></button>
+          <div class="download-btn d-flex justify-content-center mt-4 d-none">
+            <a class="btn btn-success">Download</a>
+          </div>
         </div>
       </div>
     </div>
-
-    <script>
-      // selector form schema
-      let schema = `
-        <form class="form1">
-            <div class="seleceTv d-flex">
-              <select
-                name="type"
-                class="form-select form-select-sm"
-                aria-label=".form-select-sm example"
-              >
-                <option selected disabled>What you need?</option>
-                <option value="txt">TEXT</option>
-                <option value="link">LINK</option>
-                <option disabled value="img">IMAGE</option>
-              </select>
-
-              <div class="input-group mb-3">
-                <input
-                  type="text"
-                  name="name"
-                  class="form-control"
-                  placeholder="name"
-                />
-                <input
-                  type="text"
-                  class="form-control"
-                  \
-                  name="data"
-                  placeholder="selector"
-                  style="width: 60%"
-                />
-              </div>
-            </div>
-          </form>
-      `;
-
-      // first input form
-      let form = document.querySelector("form");
-      let exportForm = document.querySelector("#exporter");
-
-      // selector inputs div
-      let selectors = document.querySelector("#selectors");
-
-      // add more input btn
-      let add = document.querySelector("#addMore");
-
-      let pageSel = document.querySelector(".page-selector");
-      let url;
-      let result;
-      let data = [];
-      let i = 0;
-      add.onclick = () => {
-        // click event on add btn
-        i++;
-        if (i >= 4) {
-          // show message on max count
-          add.previousElementSibling.innerHTML = "cant add more";
-          setTimeout(() => (add.previousElementSibling.innerHTML = ""), 2000); // clear error message after 3s
-          add.classList.add("d-none");
-        } else {
-          selectors.insertAdjacentHTML("beforeend", schema); // insert form schema in selectors div
-        }
-      };
-      // form event - for process and send data to server
-      form.onsubmit = async (event) => {
-        try {
-          event.preventDefault(); // stop from reload
-          let selecForm = document.querySelectorAll(".form1"); // select all selectors_input forms
-
-          let form0 = Object.fromEntries(new FormData(form).entries()); // get url from main form
-          url = form0.url;
-          if (form0.type === "single") {
-            form0 = { url: form0.url };
-          }
-          // here will be pushed all selector obj
-          selecForm.forEach((e) => {
-            let ar = Object.fromEntries(new FormData(e).entries()); // create object for selector form data
-            data.push(ar); // push to data[]
-          });
-
-          // the final object
-          console.log(
-            JSON.stringify({
-              ...form0,
-              selector: data,
-            })
-          );
-
-          // send data to server
-          const response = await fetch(
-            "http://localhost:5000/api/v1/get-data/",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                ...form0,
-                selector: data,
-              }), // the final object
-            }
-          );
-
-          result = await response.json();
-          console.log(result);
-        } catch (error) {}
-      };
-
-      pageSel.addEventListener("click", (e) => {
-        let data = Object.fromEntries(new FormData(form).entries()); // get url from main form
-        let pageInput = document.querySelector(".page-input");
-        if (data.type === "multi") {
-          pageInput.classList.remove("d-none");
-        } else {
-          pageInput.classList.add("d-none");
-        }
-        console.log(data.type);
-      });
-
-      exportForm.onsubmit = async (event) => {
-        try {
-          event.preventDefault(); // stop from reload
-          let header = [];
-          data.map((e) => header.push(e.name));
-
-          // send data to server
-          const response = await fetch(
-            "http://localhost:5000/api/v1/export-data/",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                url,
-                header,
-                data: result,
-              }), // the final object
-            }
-          );
-        } catch (e) {
-          console.log(e);
-        }
-      };
-    </script>
-
     <script
       src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
       integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
@@ -311,5 +174,6 @@
       integrity="sha384-PsUw7Xwds7x08Ew3exXhqzbhuEYmA2xnwc8BuD6SEr+UmEHlX8/MCltYEodzWA4u"
       crossorigin="anonymous"
     ></script>
+    <script src="assets/script.js"></script>
   </body>
 </html>

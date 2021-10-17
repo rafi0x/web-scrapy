@@ -16,5 +16,5 @@ app.use(middlewares);
 app.use(router);
 
 app.listen(5000, () => {
-  console.log("server on 5050");
+  console.log("server on 5000");
 });

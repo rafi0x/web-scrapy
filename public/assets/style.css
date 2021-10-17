@@ -32,6 +32,9 @@ select {
   width: 75%;
   margin: 0 auto;
 }
+.seleceTv .select_export {
+  width: 100% !important;
+}
 
 @media screen and (max-width: 600px) {
   .seleceTv {
