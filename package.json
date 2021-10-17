@@ -16,10 +16,10 @@
     "express": "^4.17.1",
     "googleapis": "^88.2.0",
     "lodash": "^4.17.21",
+    "nodemon": "^2.0.13",
     "puppeteer": "^10.4.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.13",
     "morgan": "^1.10.0"
   }
 }
