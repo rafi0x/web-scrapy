@@ -26,8 +26,7 @@ scraper.getData = async (selector) => {
     await scraper.page.evaluate(() => {
       window.scrollTo(0, window.document.body.scrollHeight);
     });
-    await scraper.page.waitForSelector(selector.data);
-    await scraper.page.waitForTimeout(1800);
+    await scraper.page.waitForTimeout(1500);
     // if get any specific type
     if (selector.type == "link") {
       contentArr = await scraper.page.$$eval(selector.data, (raw) => {
@@ -48,7 +47,8 @@ scraper.getData = async (selector) => {
 // execute getData from a single selectoor from multipage
 scraper.exec = async (selector, nextBtn, pages) => {
   try {
-    await scraper.page.goto(scraper.url, { waitUntil: "networkidle0" });
+    await scraper.page.goto(scraper.url, { waitUntil: "domcontentloaded" });
+
     let result = []; // get data from first page
     if (nextBtn && pages) {
       let index = 0;

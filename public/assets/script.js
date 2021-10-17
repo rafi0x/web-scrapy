@@ -120,10 +120,9 @@ form.onsubmit = async (event) => {
     }
     // send data to server
     global.results = await response.json();
-
+    console.log(global.results);
     // changing the start btn on result, also show the export option on success
     if (global.results) {
-      this.reset();
       startBtn.classList.remove("btn-primary");
       startBtn.classList.add("btn-success");
       startBtn.innerHTML = "Scraping Complete";
@@ -172,7 +171,7 @@ exportForm.onsubmit = async (event) => {
     const fileName = `${global.url.replace(/.+\/\/|www.|\..+/g, "")}.xls`;
     const workSheetName = global.url.replace(/.+\/\/|www.|\/.+/g, "");
 
-    let type = Object.fromEntries(new FormData(this).entries());
+    let type = Object.fromEntries(new FormData(exportForm).entries());
     if (type.type === "xlsx") {
       exportExcel(global.results, header, workSheetName, fileName);
       setTimeout(() => {
