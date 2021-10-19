@@ -9,7 +9,9 @@ const scraper = {
 // assign the browser and page
 scraper.init = async (url) => {
   try {
-    scraper.browser = await puppeteer.launch({ args: ["--no-sandbox"] });
+    scraper.browser = await puppeteer.launch({
+      args: ["--no-sandbox"],
+    });
     scraper.page = await scraper.browser.newPage();
     scraper.url = url;
     await scraper.page.setDefaultNavigationTimeout(100000);
@@ -26,6 +28,7 @@ scraper.getData = async (selector) => {
     await scraper.page.evaluate(() => {
       window.scrollTo(0, window.document.body.scrollHeight);
     });
+    await scraper.page.waitForSelector(selector.data);
     await scraper.page.waitForTimeout(1500);
     // if get any specific type
     if (selector.type == "link") {
@@ -47,7 +50,7 @@ scraper.getData = async (selector) => {
 // execute getData from a single selectoor from multipage
 scraper.exec = async (selector, nextBtn, pages) => {
   try {
-    await scraper.page.goto(scraper.url, { waitUntil: "domcontentloaded" });
+    await scraper.page.goto(scraper.url, { waitUntil: "networkidle0" });
 
     let result = []; // get data from first page
     if (nextBtn && pages) {
