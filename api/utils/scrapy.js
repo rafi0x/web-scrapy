@@ -9,12 +9,10 @@ const scraper = {
 // assign the browser and page
 scraper.init = async (url) => {
   try {
-    scraper.browser = await puppeteer.launch({
-      args: ["--no-sandbox"],
-    });
+    scraper.browser = await puppeteer.launch({ headless: false });
     scraper.page = await scraper.browser.newPage();
     scraper.url = url;
-    await scraper.page.setDefaultNavigationTimeout(100000);
+    await scraper.page.setDefaultNavigationTimeout(80000);
   } catch (error) {
     console.log(error);
   }
@@ -25,11 +23,13 @@ scraper.getData = async (selector) => {
   try {
     // store final data here
     let contentArr;
+    await scraper.page.waitForTimeout(1500);
     await scraper.page.evaluate(() => {
-      window.scrollTo(0, window.document.body.scrollHeight);
+      document.addEventListener("DOMContentLoaded", () => {
+        window.scrollTo(0, window.document.body.scrollHeight);
+      });
     });
     await scraper.page.waitForSelector(selector.data);
-    await scraper.page.waitForTimeout(1500);
     // if get any specific type
     if (selector.type == "link") {
       contentArr = await scraper.page.$$eval(selector.data, (raw) => {

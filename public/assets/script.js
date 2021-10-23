@@ -42,7 +42,6 @@ let exportForm = document.querySelector("#exporter");
 // add more input btn
 let add = document.querySelector("#addMore");
 let startBtn = document.querySelector(".start-scrapy");
-let downBtn = document.querySelector(".download-btn");
 
 // option select
 let pageSel = document.querySelector(".page-selector");
@@ -157,14 +156,19 @@ exportSel.addEventListener("click", (e) => {
   if (select.type === "xlsx") {
     btn.classList.remove("d-none");
     btn.innerHTML = "Download";
-  } else if (select.type === "gSheet") {
+  } else if (select.type === "gsheet") {
     btn.classList.remove("d-none");
     btn.innerHTML = "GO";
+    btn.setAttribute("href", "sheet.html");
+  } else {
+    btn.classList.add("d-none");
+    btn.innerHTML = "";
   }
 });
 
 // the exporter
 exportForm.onsubmit = async (event) => {
+  console.log("herlo");
   try {
     event.preventDefault(); // stop from reload
     let header = [...global.selector.map((e) => e.name)];
@@ -172,11 +176,12 @@ exportForm.onsubmit = async (event) => {
     const workSheetName = global.url.replace(/.+\/\/|www.|\/.+/g, "");
 
     let type = Object.fromEntries(new FormData(exportForm).entries());
+    console.log(type.type);
+    exportExcel(global.results, header, workSheetName, fileName);
     if (type.type === "xlsx") {
-      exportExcel(global.results, header, workSheetName, fileName);
-      setTimeout(() => {
-        location.reload();
-      }, 1000); // on success take a reload for new start
+      // setTimeout(() => {
+      //   location.reload();
+      // }, 1000); // on success take a reload for new start
     }
   } catch (e) {
     console.log(e);

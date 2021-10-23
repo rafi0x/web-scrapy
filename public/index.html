@@ -136,11 +136,7 @@
           "
         >
           <p style="margin: auto 0">Export:</p>
-          <form
-            action="http://localhost:5000/api/v1/export-data/"
-            method="post"
-            id="exporter"
-          >
+          <form method="post" id="exporter">
             <div class="seleceTv d-flex">
               <select
                 name="type"
@@ -158,9 +154,6 @@
             class="btn btn-primary d-none export-button"
             form="exporter"
           ></button>
-          <div class="download-btn d-flex justify-content-center mt-4 d-none">
-            <a class="btn btn-success">Download</a>
-          </div>
         </div>
       </div>
     </div>
