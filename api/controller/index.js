@@ -1,6 +1,7 @@
 const _ = require("lodash");
+const fs = require("fs");
 const scrape = require("../utils/scrapy");
-const url = require("../utils/auth");
+const { oAuth2Client } = require("../utils/auth");
 const { google } = require("googleapis");
 const controller = {};
 
@@ -20,21 +21,44 @@ controller.getRequest = async (req, res, next) => {
   }
 };
 controller.googleApi = (req, res) => {
+  const url = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
   res.redirect(url);
 };
-controller.gotoSheet = async (req, res) => {
-  console.log(req.query.code);
-  const sheets = google.sheets({ version: "v4", auth: req.query.code });
-  const metaData = await sheets.spreadsheets.get({
-    auth: req.query.code,
-    spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
-  });
-  const getRows = await sheets.spreadsheets.values.get({
-    auth: req.query.code,
-    spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
-    range: "Sheet1!A:A",
-  });
-  console.log(getRows);
-  res.send(getRows);
+
+controller.gotoSheet = (req, res) => {
+  try {
+    const sheeto = async (auth) => {
+      const sheets = google.sheets({ version: "v4", auth });
+
+      const getRows = await sheets.spreadsheets.values.get({
+        spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
+        range: "Sheet1!A:C",
+      });
+      console.log(getRows.data.values);
+    };
+
+    fs.readFile("token.json", (err, token) => {
+      if (err || JSON.parse(token).expiry_date < Date.now()) {
+        oAuth2Client.getToken(req.query.code, (err, newToken) => {
+          if (err) return console.error(err);
+
+          fs.writeFile("token.json", JSON.stringify(newToken), (err) => {
+            if (err) return console.error(err);
+            oAuth2Client.setCredentials(newToken);
+            sheeto(oAuth2Client);
+          });
+        });
+      }
+      oAuth2Client.setCredentials(JSON.parse(token));
+      sheeto(oAuth2Client);
+    });
+
+    res.send("getRows");
+  } catch (error) {
+    console.error(error);
+  }
 };
 module.exports = controller;
