@@ -1,9 +1,14 @@
 const express = require("express");
 const cors = require("cors");
+var cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 
 const middlewares = [
-  cors(),
+  cors({
+    origin: "http://127.0.0.1:5000",
+    credentials: true,
+  }),
+  cookieParser(),
   express.json(),
   express.urlencoded({ extended: true }),
   morgan("dev"),

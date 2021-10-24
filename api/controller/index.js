@@ -31,41 +31,32 @@ controller.googleApi = (req, res) => {
 
 controller.gotoSheet = (req, res) => {
   try {
-    fs.readFile("token.json", (err, token) => {
-      if (err || JSON.parse(token).expiry_date < Date.now()) {
-        oAuth2Client.getToken(req.query.code, (err, newToken) => {
-          if (err) return console.error(err);
+    oAuth2Client.getToken(req.query.code, (err, token) => {
+      if (err) return console.error("err from here", err);
 
-          fs.writeFile("token.json", JSON.stringify(newToken), (err) => {
-            if (err) return console.error(err);
-            oAuth2Client.setCredentials(newToken);
-            sheeto(oAuth2Client);
-            setJWT(token);
-          });
-        });
-      }
-      oAuth2Client.setCredentials(JSON.parse(token));
+      oAuth2Client.setCredentials(token);
       sheeto(oAuth2Client);
       setJWT(token);
     });
+    // console.log(req.cookies.token);
 
     function setJWT(token) {
       const userToken = jwt.sign(
-        { ...JSON.parse(token) },
+        { ...token },
         "1V6pxo9Ky9JZiEuPpOGzAw0nZPaDh0PDPP822vc",
         {
-          expiresIn: JSON.parse(token).expiry_date,
+          expiresIn: token.expiry_date,
         }
       );
       console.log(userToken);
       return res.cookie("token", userToken, {
-        expires: new Date(JSON.parse(token).expiry_date),
+        expires: new Date(token.expiry_date),
         secure: false,
         httpOnly: true,
       });
     }
 
-    function verifyToken(token) {}
+    // function verifyToken(token) {}
 
     async function sheeto(auth) {
       const sheets = google.sheets({ version: "v4", auth });
