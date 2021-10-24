@@ -1,8 +1,14 @@
 const router = require("express").Router();
-const { getRequest, googleApi, gotoSheet } = require("../controller/index");
+const {
+  getRequest,
+  googleApi,
+  tokenController,
+  sheetController,
+} = require("../controller/index");
 
 router.route("/api/v1/get-data/").post(getRequest);
-router.route("/api/v1/google-api").get(googleApi);
-router.route("/api/v1/goto-sheets/").get(gotoSheet);
+router.route("/api/v1/google-api/").get(googleApi);
+router.route("/api/v1/get-token/").get(tokenController);
+router.route("/api/v1/sheet-api/").get(sheetController);
 
 module.exports = router;

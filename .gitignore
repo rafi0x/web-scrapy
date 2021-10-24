@@ -1,3 +1,4 @@
 *.vscode
-*.note
+.note
+.env
 /node_modules

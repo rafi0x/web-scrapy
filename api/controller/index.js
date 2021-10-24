@@ -22,6 +22,9 @@ controller.getRequest = async (req, res, next) => {
   }
 };
 controller.googleApi = (req, res) => {
+  if (req.cookies.token !== undefined)
+    return res.redirect("/api/v1/sheet-api/");
+
   const url = oAuth2Client.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/spreadsheets"],
@@ -29,47 +32,62 @@ controller.googleApi = (req, res) => {
   res.redirect(url);
 };
 
-controller.gotoSheet = (req, res) => {
-  try {
-    oAuth2Client.getToken(req.query.code, (err, token) => {
-      if (err) return console.error("err from here", err);
+controller.tokenController = (req, res) => {
+  if (!req.query.code) return res.redirect("/api/v1/google-api/");
 
-      oAuth2Client.setCredentials(token);
-      sheeto(oAuth2Client);
-      setJWT(token);
+  if (req.cookies.token !== undefined)
+    return res.redirect("/api/v1/sheet-api/");
+
+  oAuth2Client.getToken(req.query.code, (err, token) => {
+    if (err) return res.redirect("/api/v1/google-api/");
+
+    const userToken = jwt.sign({ ...token }, process.env.JWT_SEC_KEY, {
+      expiresIn: token.expiry_date,
     });
-    // console.log(req.cookies.token);
+    res.cookie("token", userToken, {
+      expires: new Date(token.expiry_date),
+      secure: false,
+      httpOnly: true,
+    });
+    return res.redirect(302, "/api/v1/sheet-api/");
+  });
 
-    function setJWT(token) {
-      const userToken = jwt.sign(
-        { ...token },
-        "1V6pxo9Ky9JZiEuPpOGzAw0nZPaDh0PDPP822vc",
-        {
-          expiresIn: token.expiry_date,
-        }
-      );
-      console.log(userToken);
-      return res.cookie("token", userToken, {
-        expires: new Date(token.expiry_date),
-        secure: false,
-        httpOnly: true,
-      });
+  //
+};
+
+controller.sheetController = (req, res) => {
+  if (req.cookies.token === undefined)
+    return res.redirect("/api/v1/google-api/");
+
+  const token = jwt.verify(
+    req.cookies.token,
+    process.env.JWT_SEC_KEY,
+    (err, token) => {
+      if (err) {
+        console.error(err.message);
+        return res.redirect("/api/v1/google-api/");
+      } else {
+        return token;
+      }
     }
+  );
 
-    // function verifyToken(token) {}
+  oAuth2Client.setCredentials(token);
 
-    async function sheeto(auth) {
-      const sheets = google.sheets({ version: "v4", auth });
+  const sheets = google.sheets({ version: "v4", auth: oAuth2Client });
 
-      const getRows = await sheets.spreadsheets.values.get({
-        spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
-        range: "Sheet1!A:C",
-      });
-      console.log(getRows.data.values);
-      res.send(getRows.data.values);
+  sheets.spreadsheets.values.get(
+    {
+      spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
+      range: "Sheet1!A:C",
+    },
+    (err, result) => {
+      if (err) {
+        res.clearCookie("token");
+        return res.send(err.errors);
+      }
+      return res.send(result.data.values);
     }
-  } catch (error) {
-    console.error(error);
-  }
+  );
 };
 module.exports = controller;
