@@ -11,13 +11,13 @@
   "author": "rafi0x",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.22.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "googleapis": "^88.2.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
-    "puppeteer": "^10.4.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "puppeteer": "^10.4.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.13"

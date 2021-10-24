@@ -3,6 +3,7 @@ const fs = require("fs");
 const scrape = require("../utils/scrapy");
 const { oAuth2Client } = require("../utils/auth");
 const { google } = require("googleapis");
+const jwt = require("jsonwebtoken");
 const controller = {};
 
 controller.getRequest = async (req, res, next) => {
@@ -30,16 +31,6 @@ controller.googleApi = (req, res) => {
 
 controller.gotoSheet = (req, res) => {
   try {
-    const sheeto = async (auth) => {
-      const sheets = google.sheets({ version: "v4", auth });
-
-      const getRows = await sheets.spreadsheets.values.get({
-        spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
-        range: "Sheet1!A:C",
-      });
-      console.log(getRows.data.values);
-    };
-
     fs.readFile("token.json", (err, token) => {
       if (err || JSON.parse(token).expiry_date < Date.now()) {
         oAuth2Client.getToken(req.query.code, (err, newToken) => {
@@ -49,14 +40,43 @@ controller.gotoSheet = (req, res) => {
             if (err) return console.error(err);
             oAuth2Client.setCredentials(newToken);
             sheeto(oAuth2Client);
+            setJWT(token);
           });
         });
       }
       oAuth2Client.setCredentials(JSON.parse(token));
       sheeto(oAuth2Client);
+      setJWT(token);
     });
 
-    res.send("getRows");
+    function setJWT(token) {
+      const userToken = jwt.sign(
+        { ...JSON.parse(token) },
+        "1V6pxo9Ky9JZiEuPpOGzAw0nZPaDh0PDPP822vc",
+        {
+          expiresIn: JSON.parse(token).expiry_date,
+        }
+      );
+      console.log(userToken);
+      return res.cookie("token", userToken, {
+        expires: new Date(JSON.parse(token).expiry_date),
+        secure: false,
+        httpOnly: true,
+      });
+    }
+
+    function verifyToken(token) {}
+
+    async function sheeto(auth) {
+      const sheets = google.sheets({ version: "v4", auth });
+
+      const getRows = await sheets.spreadsheets.values.get({
+        spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
+        range: "Sheet1!A:C",
+      });
+      console.log(getRows.data.values);
+      res.send(getRows.data.values);
+    }
   } catch (error) {
     console.error(error);
   }
