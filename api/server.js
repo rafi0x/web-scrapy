@@ -7,6 +7,7 @@ const middlewares = require("./middlewares/index");
 
 const app = express();
 
+app.set("view engine", "ejs");
 middlewares(app);
 app.use(router);
 

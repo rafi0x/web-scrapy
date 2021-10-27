@@ -12,6 +12,7 @@ const middlewares = [
     ],
     credentials: true,
   }),
+  express.static("public"),
   cookieParser(),
   express.json(),
   express.urlencoded({ extended: true }),

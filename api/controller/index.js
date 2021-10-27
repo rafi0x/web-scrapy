@@ -6,7 +6,11 @@ const { google } = require("googleapis");
 const jwt = require("jsonwebtoken");
 const controller = {};
 
-controller.getRequest = async (req, res, next) => {
+controller.getScraper = (req, res) => {
+  res.render("pages/index");
+};
+
+controller.startScraper = async (req, res, next) => {
   const url = req.body.url || null;
   const selector = req.body.selector || null;
   const nextBtn = req.body.nextBtn || null;
@@ -28,8 +32,7 @@ controller.getRequest = async (req, res, next) => {
 };
 
 controller.googleApi = (req, res) => {
-  if (req.cookies.token !== undefined)
-    return res.redirect("http://127.0.0.1:5500/public/sheet.html"); // redirect to sheets page
+  if (req.cookies.token !== undefined) return res.redirect("/sheets"); // redirect to sheets page
 
   const url = oAuth2Client.generateAuthUrl({
     access_type: "offline",
@@ -39,11 +42,11 @@ controller.googleApi = (req, res) => {
 };
 
 controller.tokenController = (req, res) => {
-  if (!req.query.code) return res.redirect("/api/v1/google-api/"); // if google auth url is in invalid
+  if (!req.query.code) return res.redirect("/auth-google"); // if google auth url is in invalid
 
   //genetare gapi tokens and save as jwt cookie
   oAuth2Client.getToken(req.query.code, (err, token) => {
-    if (err) return res.redirect("/api/v1/google-api/");
+    if (err) return res.redirect("/auth-google");
 
     const userToken = jwt.sign({ ...token }, process.env.JWT_SEC_KEY, {
       expiresIn: token.expiry_date,
@@ -54,8 +57,13 @@ controller.tokenController = (req, res) => {
       secure: false,
       httpOnly: true,
     });
-    return res.redirect("http://127.0.0.1:5500/public/sheet.html"); // sheets page
+    return res.redirect("/sheets"); // sheets page
   });
+};
+
+controller.getSheets = (req, res) => {
+  if (!req.cookies.token) return res.redirect("/scraper");
+  res.render("pages/sheet");
 };
 
 controller.sheetController = (req, res) => {
@@ -64,24 +72,18 @@ controller.sheetController = (req, res) => {
   const sheetName = req.body.sheetName;
   const values = req.body.data;
 
-  // if (req.cookies.token === undefined)
-  //   return res.redirect("/api/v1/google-api/");
-
-  console.log(req.cookies.token);
-
   const token = jwt.verify(
     req.cookies.token,
     process.env.JWT_SEC_KEY,
     (err, token) => {
       if (err) {
         console.error(err.message);
-        // return res.redirect("/api/v1/google-api/");
+        return res.redirect("/auth-google");
       } else {
         return token;
       }
     }
   );
-  if (!token) return console.log(token);
 
   // set the oauth token
   oAuth2Client.setCredentials(token);
@@ -105,14 +107,16 @@ controller.sheetController = (req, res) => {
         if (err) return console.error(err);
         writeSheets(gSheets, spreadsheet.data.spreadsheetId, sheetName, values);
 
-        return res.redirect(
-          `https://docs.google.com/spreadsheets/d/${spreadsheet.data.spreadsheetId}/`
-        );
+        return res.send({
+          url: `https://docs.google.com/spreadsheets/d/${spreadsheet.data.spreadsheetId}/`,
+        });
       }
     );
   } else if (sheetsId && sheetName && !fileName) {
     writeSheets(gSheets, sheetsId, sheetName, values);
-    return res.redirect(`https://docs.google.com/spreadsheets/d/${sheetsId}/`);
+    return res.redirect({
+      url: `https://docs.google.com/spreadsheets/d/${sheetsId}/`,
+    });
   }
 
   // function for wtire in Google spreadsheets
@@ -128,9 +132,8 @@ controller.sheetController = (req, res) => {
         range: `Sheet1!A:B`,
         resource,
       },
-      (err, result) => {
+      (err) => {
         if (err) return console.error(err);
-        console.log(result);
       }
     );
   };
