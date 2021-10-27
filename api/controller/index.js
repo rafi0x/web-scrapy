@@ -13,51 +13,61 @@ controller.getRequest = async (req, res, next) => {
   const pages = req.body.pages || null;
 
   try {
+    // initialize scraping function
     const neArr = await scrape.start(url, selector, nextBtn, pages);
-    if (neArr.length === 0) res.send(new Error("cant scrap"));
+    if (neArr.length === 0) return res.send(new Error("cant scrap"));
+
+    // zipping the data, only 4 selector data allowed
     const fData = _.zip(neArr[0], neArr[1], neArr[2], neArr[3]);
+
+    // send the zipped data
     res.send(JSON.stringify(fData));
   } catch (error) {
     console.log(error);
   }
 };
+
 controller.googleApi = (req, res) => {
   if (req.cookies.token !== undefined)
-    return res.redirect("/api/v1/sheet-api/");
+    return res.redirect("http://127.0.0.1:5500/public/sheet.html"); // redirect to sheets page
 
   const url = oAuth2Client.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/spreadsheets"],
   });
-  res.redirect(url);
+  res.redirect(url); // url for google Sheets Auth
 };
 
 controller.tokenController = (req, res) => {
-  if (!req.query.code) return res.redirect("/api/v1/google-api/");
+  if (!req.query.code) return res.redirect("/api/v1/google-api/"); // if google auth url is in invalid
 
-  if (req.cookies.token !== undefined)
-    return res.redirect("/api/v1/sheet-api/");
-
+  //genetare gapi tokens and save as jwt cookie
   oAuth2Client.getToken(req.query.code, (err, token) => {
     if (err) return res.redirect("/api/v1/google-api/");
 
     const userToken = jwt.sign({ ...token }, process.env.JWT_SEC_KEY, {
       expiresIn: token.expiry_date,
     });
+    //set in cookie
     res.cookie("token", userToken, {
       expires: new Date(token.expiry_date),
       secure: false,
       httpOnly: true,
     });
-    return res.redirect(302, "/api/v1/sheet-api/");
+    return res.redirect("http://127.0.0.1:5500/public/sheet.html"); // sheets page
   });
-
-  //
 };
 
 controller.sheetController = (req, res) => {
-  if (req.cookies.token === undefined)
-    return res.redirect("/api/v1/google-api/");
+  const fileName = req.body.fileName || null;
+  const sheetsId = req.body.sheetsId || null;
+  const sheetName = req.body.sheetName;
+  const values = req.body.data;
+
+  // if (req.cookies.token === undefined)
+  //   return res.redirect("/api/v1/google-api/");
+
+  console.log(req.cookies.token);
 
   const token = jwt.verify(
     req.cookies.token,
@@ -65,29 +75,65 @@ controller.sheetController = (req, res) => {
     (err, token) => {
       if (err) {
         console.error(err.message);
-        return res.redirect("/api/v1/google-api/");
+        // return res.redirect("/api/v1/google-api/");
       } else {
         return token;
       }
     }
   );
+  if (!token) return console.log(token);
 
+  // set the oauth token
   oAuth2Client.setCredentials(token);
 
-  const sheets = google.sheets({ version: "v4", auth: oAuth2Client });
+  //init gSheets API
+  const gSheets = google.sheets({ version: "v4", auth: oAuth2Client });
 
-  sheets.spreadsheets.values.get(
-    {
-      spreadsheetId: "1V6-pxo9-K-y9-JZiEuPpOGzAw0nZPaDh0PDPP8-22vc",
-      range: "Sheet1!A:C",
-    },
-    (err, result) => {
-      if (err) {
-        res.clearCookie("token");
-        return res.send(err.errors);
+  if (fileName && sheetName && !sheetsId) {
+    const resource = {
+      properties: {
+        title: fileName,
+      },
+    };
+    // create new gSheet
+    gSheets.spreadsheets.create(
+      {
+        resource,
+        fields: "spreadsheetId",
+      },
+      (err, spreadsheet) => {
+        if (err) return console.error(err);
+        writeSheets(gSheets, spreadsheet.data.spreadsheetId, sheetName, values);
+
+        return res.redirect(
+          `https://docs.google.com/spreadsheets/d/${spreadsheet.data.spreadsheetId}/`
+        );
       }
-      return res.send(result.data.values);
-    }
-  );
+    );
+  } else if (sheetsId && sheetName && !fileName) {
+    writeSheets(gSheets, sheetsId, sheetName, values);
+    return res.redirect(`https://docs.google.com/spreadsheets/d/${sheetsId}/`);
+  }
+
+  // function for wtire in Google spreadsheets
+  const writeSheets = (api, sheetId, sheetName, values) => {
+    const resource = {
+      values,
+    };
+
+    api.spreadsheets.values.update(
+      {
+        spreadsheetId: sheetId,
+        valueInputOption: "USER_ENTERED",
+        range: `Sheet1!A:B`,
+        resource,
+      },
+      (err, result) => {
+        if (err) return console.error(err);
+        console.log(result);
+      }
+    );
+  };
 };
+
 module.exports = controller;

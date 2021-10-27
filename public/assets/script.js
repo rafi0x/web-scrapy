@@ -119,7 +119,11 @@ form.onsubmit = async (event) => {
     }
     // send data to server
     global.results = await response.json();
+
+    localStorage.setItem("scrapData", JSON.stringify(global.results)); // save result to localStorage
+
     console.log(global.results);
+
     // changing the start btn on result, also show the export option on success
     if (global.results) {
       startBtn.classList.remove("btn-primary");
@@ -175,13 +179,18 @@ exportForm.onsubmit = async (event) => {
     const fileName = `${global.url.replace(/.+\/\/|www.|\..+/g, "")}.xls`;
     const workSheetName = global.url.replace(/.+\/\/|www.|\/.+/g, "");
 
-    let type = Object.fromEntries(new FormData(exportForm).entries());
-    console.log(type.type);
-    exportExcel(global.results, header, workSheetName, fileName);
-    if (type.type === "xlsx") {
-      // setTimeout(() => {
-      //   location.reload();
-      // }, 1000); // on success take a reload for new start
+    let exportType = Object.fromEntries(new FormData(exportForm).entries());
+
+    if (exportType.type === "xlsx") {
+      exportExcel(global.results, header, workSheetName, fileName);
+      localStorage.removeItem("scrapData");
+      setTimeout(() => {
+        location.reload();
+      }, 1000); // on success take a reload for new start
+    } else if (exportType.type === "gsheet") {
+      location.replace("http://127.0.0.1:5000/api/v1/google-api");
+    } else {
+      location.reload();
     }
   } catch (e) {
     console.log(e);

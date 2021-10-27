@@ -1,0 +1,29 @@
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:is(input, button):focus {
+  box-shadow: none !important;
+}
+
+.button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.button span {
+  padding: 0 1rem;
+}
+
+.buttons {
+  flex: 1;
+}
+
+.buttons button {
+  width: 100%;
+}
