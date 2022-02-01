@@ -4,9 +4,11 @@ const cors = require("cors");
 const morgan = require("morgan");
 const router = require("./router/index");
 const middlewares = require("./middlewares/index");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
+app.use(cookieParser());
 app.set("view engine", "ejs");
 middlewares(app);
 app.use(router);

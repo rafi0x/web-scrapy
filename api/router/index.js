@@ -1,19 +1,18 @@
 const router = require("express").Router();
 const {
-  getScraper,
+  getScraperPage,
+  getSheetPage,
   startScraper,
   googleApi,
   tokenController,
-  getSheets,
   sheetController,
 } = require("../controller/index");
 
-router.route("/scraper/").get(getScraper).post(startScraper);
-
-router.route("/auth-google/").get(googleApi);
-
-router.route("/token/").get(tokenController);
-
-router.route("/sheets/").get(getSheets).post(sheetController);
+router.route('/').get(getScraperPage)
+router.route('/sheets').get(getSheetPage)
+router.route("/api/v1/get-data/").post(startScraper);
+router.route("/api/v1/google-api/").get(googleApi);
+router.route("/api/v1/get-token/").get(tokenController);
+router.route("/api/v1/sheet-api/").post(sheetController);
 
 module.exports = router;

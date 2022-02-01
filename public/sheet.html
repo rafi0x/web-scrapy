@@ -49,7 +49,7 @@
         </div>
 
         <form
-          action="http://127.0.0.1:5000/api/v1/sheet-api/"
+          action="/api/v1/sheet-api/"
           method="POST"
           id="new"
           class="mt-4 d-none"
@@ -96,18 +96,22 @@
                     />
                   </div>
                   <div class="col-lg-2 col-md-12 col-sm-12 mt-sm-3 mt-lg-0">
-                    <button type="submit" class="btn btn-danger w-100">
+                    <button
+                      type="submit"
+                      class="btn btn-danger w-100 redirect-btn"
+                    >
                       Go
                     </button>
                   </div>
                 </div>
               </div>
             </div>
+            <div class="col-lg-10 col-md-12 text-center mt-5 message-box"></div>
           </div>
         </form>
 
         <form
-          action="http://127.0.0.1:5000/api/v1/sheet-api/"
+          action="/api/v1/sheet-api/"
           method="POST"
           id="existing"
           class="mt-4 d-none"
@@ -190,6 +194,7 @@
       });
 
       newForm.onsubmit = async function (e) {
+        console.log(JSON.parse(localStorage.getItem("scrapData")))
         try {
           e.preventDefault();
 
@@ -197,11 +202,12 @@
           let ddd = {
             fileName: this[0].value,
             sheetName: this[1].value,
+            jwt: document.cookie.match(`(?<=${"token"}=)[^;]*`)[0],
             data: JSON.parse(localStorage.getItem("scrapData")), // get scraped result from localStorage
           };
 
           const response = await fetch(
-            "http://127.0.0.1:5000/api/v1/sheet-api/",
+            "/api/v1/sheet-api/",
             {
               method: "POST",
               headers: {
@@ -211,6 +217,17 @@
             }
           );
           const result = await response.json();
+          if (result.url) {
+            document.querySelector(".message-box").style.color = "green";
+            document.querySelector(".message-box").textContent =
+              "success: Redirecting to your sheet";
+            setTimeout(() => {
+              location.replace(result.url);
+            }, 2000);
+          } else {
+            document.querySelector(".message-box").style.color = "red";
+            document.querySelector(".message-box").textContent = result.error;
+          }
           console.log(result);
         } catch (error) {
           console.log(error);
@@ -229,7 +246,7 @@
           };
 
           const response = await fetch(
-            "http://127.0.0.1:5000/api/v1/sheet-api/",
+            "/api/v1/sheet-api/",
             {
               method: "POST",
               headers: {
@@ -239,6 +256,7 @@
             }
           );
           const result = await response.json();
+
           console.log(result);
         } catch (error) {
           console.log(error);

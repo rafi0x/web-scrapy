@@ -8,7 +8,7 @@ const scraper = {
 
 // assign the browser and page
 scraper.init = async (url) => {
-  try {
+try {
     scraper.browser = await puppeteer.launch({ headless: false });
     scraper.page = await scraper.browser.newPage();
     scraper.url = url;
