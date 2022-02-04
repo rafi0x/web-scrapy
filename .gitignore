@@ -1,4 +1,5 @@
 *.vscode
 .note
 .env
+.idea
 /node_modules
