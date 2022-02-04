@@ -49,7 +49,7 @@
         </div>
 
         <form
-          action="/api/v1/sheet-api/"
+          action="http://127.0.0.1:5000/api/v1/sheet-api/"
           method="POST"
           id="new"
           class="mt-4 d-none"
@@ -111,7 +111,7 @@
         </form>
 
         <form
-          action="/api/v1/sheet-api/"
+          action="http://127.0.0.1:5000/api/v1/sheet-api/"
           method="POST"
           id="existing"
           class="mt-4 d-none"
@@ -192,9 +192,7 @@
         existForm.classList.remove("d-none");
         newForm.classList.add("d-none");
       });
-
       newForm.onsubmit = async function (e) {
-        console.log(JSON.parse(localStorage.getItem("scrapData")))
         try {
           e.preventDefault();
 
@@ -246,7 +244,7 @@
           };
 
           const response = await fetch(
-            "/api/v1/sheet-api/",
+            "http://127.0.0.1:5000/api/v1/sheet-api/",
             {
               method: "POST",
               headers: {
