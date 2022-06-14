@@ -20,7 +20,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
-    "puppeteer": "^10.4.0"
+    "puppeteer": "^13.1.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.13"
