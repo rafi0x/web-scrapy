@@ -11,7 +11,38 @@
       integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="assets/sheet.css" />
+    <!-- <link rel="stylesheet" href="assets/sheet.css" /> -->
+    <style>
+      *,
+      *::after,
+      *::before {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :is(input, button):focus {
+        box-shadow: none !important;
+      }
+
+      .button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+      }
+
+      .button span {
+        padding: 0 1rem;
+      }
+
+      .buttons {
+        flex: 1;
+      }
+
+      .buttons button {
+        width: 100%;
+      }
+    </style>
   </head>
   <body>
     <section class="wrapper">
@@ -48,12 +79,7 @@
           </div>
         </div>
 
-        <form
-          action="http://127.0.0.1:5000/api/v1/sheet-api/"
-          method="POST"
-          id="new"
-          class="mt-4 d-none"
-        >
+        <form action="/sheets" method="POST" id="new" class="mt-4 d-none">
           <div
             class="
               row
@@ -96,26 +122,17 @@
                     />
                   </div>
                   <div class="col-lg-2 col-md-12 col-sm-12 mt-sm-3 mt-lg-0">
-                    <button
-                      type="submit"
-                      class="btn btn-danger w-100 redirect-btn"
-                    >
+                    <button type="submit" class="btn btn-danger w-100">
                       Go
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-lg-10 col-md-12 text-center mt-5 message-box"></div>
           </div>
         </form>
 
-        <form
-          action="http://127.0.0.1:5000/api/v1/sheet-api/"
-          method="POST"
-          id="existing"
-          class="mt-4 d-none"
-        >
+        <form action="/sheets" method="POST" id="existing" class="mt-4 d-none">
           <div
             class="
               row
@@ -192,74 +209,40 @@
         existForm.classList.remove("d-none");
         newForm.classList.add("d-none");
       });
-      newForm.onsubmit = async function (e) {
-        try {
-          e.preventDefault();
 
-          //form data
-          let ddd = {
-            fileName: this[0].value,
-            sheetName: this[1].value,
-            jwt: document.cookie.match(`(?<=${"token"}=)[^;]*`)[0],
-            data: JSON.parse(localStorage.getItem("scrapData")), // get scraped result from localStorage
-          };
+      let sheetController = async (form, lcKey) => {
+        form.onsubmit = async function (event) {
+          try {
+            event.preventDefault();
 
-          const response = await fetch(
-            "/api/v1/sheet-api/",
-            {
-              method: "POST",
+            // form data
+            let formData = {
+              fileName: this[0].value,
+              sheetName: this[1].value,
+              data: JSON.parse(localStorage.getItem(lcKey)), // get scraped result from localStorage
+            };
+
+            const response = await fetch(this.action, {
+              method: this.method,
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(ddd),
+              body: JSON.stringify(formData),
+            });
+            const result = await response.json();
+            if (result.url) {
+              location.href = result.url;
+              localStorage.removeItem(lcKey);
             }
-          );
-          const result = await response.json();
-          if (result.url) {
-            document.querySelector(".message-box").style.color = "green";
-            document.querySelector(".message-box").textContent =
-              "success: Redirecting to your sheet";
-            setTimeout(() => {
-              location.replace(result.url);
-            }, 2000);
-          } else {
-            document.querySelector(".message-box").style.color = "red";
-            document.querySelector(".message-box").textContent = result.error;
+          } catch (error) {
+            console.log(error);
           }
-          console.log(result);
-        } catch (error) {
-          console.log(error);
-        }
+        };
       };
 
-      existForm.onsubmit = async function (e) {
-        try {
-          e.preventDefault();
-          // let formData = new URLSearchParams(new FormData(newForm));
-          // form data
-          let ddd = {
-            fileName: this[0].value,
-            sheetName: this[1].value,
-            data: JSON.parse(localStorage.getItem("scrapData")), // get scraped result from localStorage
-          };
+      sheetController(newForm, "scrapData");
 
-          const response = await fetch(
-            "http://127.0.0.1:5000/api/v1/sheet-api/",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(ddd),
-            }
-          );
-          const result = await response.json();
-
-          console.log(result);
-        } catch (error) {
-          console.log(error);
-        }
-      };
+      sheetController(existForm, "scrapData");
     </script>
   </body>
 </html>
