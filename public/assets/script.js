@@ -163,7 +163,7 @@ exportSel.addEventListener("click", (e) => {
   } else if (select.type === "gsheet") {
     btn.classList.remove("d-none");
     btn.innerHTML = "GO";
-    btn.setAttribute("href", "sheet.html");
+    btn.setAttribute("href", "/sheets");
   } else {
     btn.classList.add("d-none");
     btn.innerHTML = "";
@@ -172,7 +172,6 @@ exportSel.addEventListener("click", (e) => {
 
 // the exporter
 exportForm.onsubmit = async (event) => {
-  console.log("herlo");
   try {
     event.preventDefault(); // stop from reload
     let header = [...global.selector.map((e) => e.name)];
