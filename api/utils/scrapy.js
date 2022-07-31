@@ -10,14 +10,14 @@ const scraper = {
 scraper.init = async (url) => {
 try {
     scraper.browser = await puppeteer.launch({ 
-      headless: true,
-      defaultViewport: null,
-      args: [
-          "--no-sandbox",
-          '--disable-setuid-sandbox'
-      ]
+        headless: true,
+        defaultViewport: null,
+        args: [
+            "--no-sandbox",
+            '--disable-setuid-sandbox'
+        ]
     });
-    
+
     scraper.page = await scraper.browser.newPage();
     scraper.url = url;
     await scraper.page.setDefaultNavigationTimeout(80000);
