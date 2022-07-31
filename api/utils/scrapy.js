@@ -17,6 +17,7 @@ try {
           '--disable-setuid-sandbox'
       ]
     });
+    
     scraper.page = await scraper.browser.newPage();
     scraper.url = url;
     await scraper.page.setDefaultNavigationTimeout(80000);
