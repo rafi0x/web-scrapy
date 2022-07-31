@@ -106,7 +106,7 @@ form.onsubmit = async (event) => {
       startBtn.innerHTML = "Processing...";
 
       // api request
-      response = await fetch("http://localhost:5000/api/v1/get-data/", {
+      response = await fetch("https://scrapy0x.herokuapp.com/api/v1/get-data/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -187,7 +187,7 @@ exportForm.onsubmit = async (event) => {
         location.reload();
       }, 1000); // on success take a reload for new start
     } else if (exportType.type === "gsheet") {
-      location.replace("http://127.0.0.1:5000/api/v1/google-api");
+      location.replace("https://scrapy0x.herokuapp.com/api/v1/google-api");
     } else {
       location.reload();
     }
